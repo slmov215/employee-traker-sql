@@ -1,38 +1,40 @@
 -- Drops the inventory_db if it exists currently --
-DROP DATABASE IF EXISTS employees_db;
+DROP DATABASE IF EXISTS employee_db;
 -- Creates the inventory_db database --
-CREATE DATABASE employees_db;
+CREATE DATABASE employee_db;
 
 -- use inventory_db database --
-USE employees_db;
+USE employee_db;
 
 -- Creates the table "produce" within inventory_db --
-CREATE TABLE departments (
+/* CREATE TABLE department (
   -- Creates a numeric column called "id" --
-  id INT NOT NULL PRIMARY KEY,
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   -- Makes a string column called "department_name" which cannot contain null --
-  department_name VARCHAR(30) NOT NULL
+  name VARCHAR(30) NOT NULL
+); */
+CREATE TABLE department (
+    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    name VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE roles (
-  id INT NOT NULL PRIMARY KEY,
-  title VARCHAR(30) NOT NULL,
-  salary ,
-  department_id INT,
-  PRIMARY KEY (id),
-  FOREIGN KEY (department_id)
-  REFERENCES departments(id)
+CREATE TABLE role (
+    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    title VARCHAR(30) NOT NULL,
+    salary DECIMAL NOT NULL,
+    department_id INT,
+    CONSTRAINT fk_department 
+    FOREIGN KEY (department_id) 
+    REFERENCES department(id) ON DELETE SET NULL
 );
 
-CREATE TABLE employees (
-  id INT NOT NULL PRIMARY KEY,
-  first_name VARCHAR(30) NOT NULL,
-  last_name VARCHAR(30) NOT NULL,
-  role_id INT,
-  manager_id INT,
-  PRIMARY KEY (id),
-  FOREIGN KEY (role_id)
-  REFERENCES roles(id)
-  FOREIGN KEY (manager_id)
-  REFERENCES employees(id)
+CREATE TABLE employee (
+    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    first_name VARCHAR(30) NOT NULL,
+    last_name VARCHAR(30) NOT NULL,
+    role_id INT,
+    manager_id INT REFERENCES employee(id) ON DELETE SET NULL,
+    CONSTRAINT fk_role 
+    FOREIGN KEY (role_id) 
+    REFERENCES role(id) ON DELETE SET NULL
 );

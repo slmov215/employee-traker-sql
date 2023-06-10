@@ -1,22 +1,23 @@
 // Import and require mysql2
 const mysql = require('mysql2');
+// const Connection = require('mysql2/typings/mysql/lib/Connection');
 
 // Connect to database
-const db = mysql.createConnection(
+const connection = mysql.createConnection(
   {
     host: 'localhost',
     // MySQL username,
     user: 'root',
     // MySQL password
-    password: 'rootroot',
-    database: 'classlist_db'
+    password: 'RootRoot',
+    database: 'employee_db'
   },
-  console.log(`Connected to the employees_db database.`)
+  console.log(`Connected to the employee_db database.`)
   );
 
   // Query database
-db.query('SELECT * FROM employees', function (err, results) {
-  console.log(results);
-});
+// db.query('SELECT * FROM employees', function (err, results) {
+//   console.log(results);
+// });
 
-module.exports = db;
+module.exports = connection;
