@@ -6,7 +6,7 @@ const prompts = require('./lib/prompts');
 // const handleTask = require('./lib/handleTask');
 // const mainIndex = require('../db/index');
 // const { addDepartment, addRole, addEmployee } = require('./lib/addingQuery');
-const updateEmployeeRole = require('./lib/updatingQuery')
+// const updateEmployeeRole = require('./lib/updatingQuery')
 
 const { table } = require('table');
 const config = {
@@ -128,7 +128,6 @@ function addDepartment(response) {
     mainIndex();
   });
 };
-
 function addRole(response) {
   connection.query(`
   INSERT INTO role (title, salary, department_id)
@@ -141,7 +140,6 @@ function addRole(response) {
     mainIndex();
   });
 };
-
 function addEmployee(response) {
   connection.query(`
   INSERT INTO employee(first_name, last_name, role_id, manager_id)
@@ -155,7 +153,22 @@ function addEmployee(response) {
   });
 };
 
+// response sent here from 'handleTask'
+// functions for all ***UPDATE*** SQL queries
 
+function updateEmployeeRole(response) {
+  const sql = `UPDATE employee SET role_id = 
+                      ${response.updateRole} 
+                      WHERE employee.id 
+                      = ${response.updateEmployee}
+              `
+  connection.query(sql, (err, res) => {
+    if (err) throw err;
+    console.log('\u001b[36;1m', `Employee role updated!`);
+    // const selectTask = require('./selectTask.js');
+    mainIndex();
+  });
+};
 
 async function showTable(rows) {
   // const { table } = require("table");
@@ -172,3 +185,4 @@ async function showTable(rows) {
   ])
   // await showTable(array);
 };
+
