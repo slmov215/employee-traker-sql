@@ -2,13 +2,8 @@
 const connection = require('./db/connection');
 const inquirer = require('inquirer');
 const prompts = require('./lib/prompts');
-
-// const handleTask = require('./lib/handleTask');
-// const mainIndex = require('../db/index');
-// const { addDepartment, addRole, addEmployee } = require('./lib/addingQuery');
-// const updateEmployeeRole = require('./lib/updatingQuery')
-
 const { table } = require('table');
+const { response } = require('express');
 const config = {
   border: {
     topBody: `─`,
@@ -39,7 +34,6 @@ connection.connect(function (err) {
 
 // start application, show title special-text and present task list prompt (using 'selectTask')
 function init() {
-  // displayTitleText();
   mainIndex();
 };
 
@@ -56,32 +50,54 @@ function mainIndex() {
 
 function handleTask(response) {
   switch (response.task) {
-    case "View all departments":
+    case "View all Departments":
       viewDepartments();
       break;
-    case "View all roles":
+    case "View all Roles":
       viewRoles();
       break;
-    case "View all employees":
+    case "View all Employees":
       viewEmployees();
       break;
-    case "Add a department":
+    case "Add a Department":
       addDepartment(response);
       break;
-    case "Add a role":
+    case "Add a Role":
       addRole(response);
       break;
-    case "Add an employee":
+    case "Add an Employee":
       addEmployee(response);
       break;
-    case "Update an employee role":
+    case "Update an Employee's Role":
       updateEmployeeRole(response);
+      break;
+    case "Update Employee Managers":
+      updateEmployeeManagers(response);
+      break;
+    case "View Employees by Manager":
+      viewEmployeeByManager(response);
+      break;
+    case "View Employees by Department":
+      viewEmployeesByDepartment(response);
+      break;
+    case "Remove Department":
+      removeDepartment(response);
+      break;
+    case "Remove Role":
+      removeRole(response);
+      break;
+    case "Remove Employee":
+      removeEmployee(response);
+      break;
+    case "View Department's Budget":
+      viewDepartmentsBudget(response);
       break;
     case "EXIT":
       console.log("GOODBYE!");
       process.exit(0);
   }
 };
+// functions for all ***Viewing*** SQL queries
 
 const viewDepartments = () => {
   const sql = `SELECT * FROM department`;
@@ -98,9 +114,7 @@ const viewRoles = () => {
   const sql = `SELECT * FROM role`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
-    // console.table(res);
     showTable(res);
-    // const selectTask = require('./selectTask.js');
     mainIndex();
   });
 };
@@ -108,66 +122,136 @@ const viewEmployees = () => {
   const sql = `SELECT * FROM employee`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
-    // console.table(res);
     showTable(res);
-    // const selectTask = require('./selectTask.js');
     mainIndex();
   });
 };
 
-function addDepartment(response) {
-  connection.query(`
-  INSERT INTO department (name)
-  VALUES
-  ('${response.department}');
-  `, (err, res) => {
+const addDepartment = (response) => {
+  const sql = `INSERT INTO department (name)
+                VALUES ('${response.department}')`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `${response.department} department added!`);
-    showTable(res);
-    // const mainIndex = require('../index');
     mainIndex();
   });
 };
-function addRole(response) {
-  connection.query(`
-  INSERT INTO role (title, salary, department_id)
-  VALUES
-  ('${response.roleTitle}', '${response.roleSalary}', '${response.roleDepartment}')
-  `, (err, res) => {
+const addRole = (response) => {
+  const sql = `INSERT INTO role (title, salary, department_id) VALUES 
+                ('${response.roleTitle}', 
+                '${response.roleSalary}', 
+                '${response.roleDepartment}')`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `${response.roleTitle} role added!`);
-    // const selectTask = require('./selectTask.js');
+    console.log('\u001b[36;1m', `${response.roleTitle} 's role added!`);
     mainIndex();
   });
 };
-function addEmployee(response) {
-  connection.query(`
-  INSERT INTO employee(first_name, last_name, role_id, manager_id)
-  VALUES
-  ('${response.employeeFirstName}', '${response.employeeLastName}', '${response.employeeRole}', '${response.employeeManager}' )
-  `, (err, res) => {
+const addEmployee = (response) => {
+  const sql = `INSERT INTO employee(first_name, last_name, role_id, manager_id)
+                VALUES ('${response.employeeFirstName}', 
+                '${response.employeeLastName}', 
+                '${response.employeeRole}', 
+                '${response.employeeManager}')`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `Employee ${response.employeeFirstName} ${response.employeeLastName} added!`);
-    // const selectTask = require('./selectTask.js');
+    console.log('\u001b[36;1m', `${response.employeeFirstName} ${response.employeeLastName} has been added to the DataBase!`);
     mainIndex();
   });
 };
 
-// response sent here from 'handleTask'
 // functions for all ***UPDATE*** SQL queries
 
-function updateEmployeeRole(response) {
+const updateEmployeeRole = (response) => {
   const sql = `UPDATE employee SET role_id = 
-                      ${response.updateRole} 
-                      WHERE employee.id 
-                      = ${response.updateEmployee}
-              `
+                ${response.updateRole} 
+                WHERE employee.id = 
+                ${response.updateEmployee}`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `Employee role updated!`);
-    // const selectTask = require('./selectTask.js');
     mainIndex();
   });
+};
+
+const updateEmployeeManagers = (response) => {
+  const sql = `UPDATE employee SET manager_id = 
+                (${response.updateNewManager})
+                WHERE id = 
+                (${response.updateEmployeeManager})`;
+  connection.query(sql, (err, res) => {
+    if (err) throw err;
+    console.log('\u001b[36;1m', `Employee's Manager updated!`);
+    mainIndex();
+  })
+};
+
+// functions for all ***SORTED VIEWING*** SQL queries
+
+const viewEmployeeByManager = (response) => {
+  const sql = `SELECT * FROM employee WHERE manager_id = ${response.employeeManager}`;
+  connection.query(sql, (err, res) => {
+    if (err) throw err;
+    if (res.length === 0) {
+      console.log('\u001b[36;1m', "This employee doesn't manage anyone");
+      return mainIndex();
+    }
+    showTable(res);
+    mainIndex();
+  });
+}
+const viewEmployeesByDepartment = (response) => {
+  const sql = `SELECT * FROM employee
+  LEFT JOIN role ON employee.role_id = role.id
+  LEFT JOIN department ON role.department_id = department.id
+                    WHERE department.id = ${response.viewDepartment}`;
+  connection.query(sql, (err, res) => {
+    if (err) throw err;
+    showTable(res);
+    mainIndex();
+  });
+}
+// functions for all ***REMOVAL*** SQL queries
+
+const removeDepartment = (response) => {
+  const sql = `DELETE FROM department
+                WHERE id = ${response.deleteDepartment}`;
+   connection.query(sql, (err, res) => {
+    if (err) throw err;
+    console.log('\u001b[36;1m', `Department of ${response.deleteDepartment} TERMINATED!`);
+    viewDepartments();
+  });
+}
+const removeRole = (response) => {
+  const sql = `DELETE FROM role
+                WHERE id = ${response.deleteRole}`;
+   connection.query(sql, (err, res) => {
+    if (err) throw err;
+    console.log('\u001b[36;1m', `The Role of ${response.deleteRole} has been TERMINATED!`);
+    viewRoles();
+  });
+}
+const removeEmployee = (response) => {
+  const sql = `DELETE FROM employee
+                WHERE id = ${response.deleteEmployee}`;
+   connection.query(sql, (err, res) => {
+    if (err) throw err;
+    console.log('\u001b[36;1m', `Employee has been terminated!`);
+    viewEmployees();
+  });
+}
+
+const viewDepartmentsBudget = (response) => {
+  const sql = `SELECT department_id AS id, department.name AS department,
+  SUM (salary) AS budget
+  FROM role
+  INNER JOIN department ON role.department_id = department.id
+  GROUP BY role.department_id`;
+      connection.query(sql, (err, rows) => {
+        if (err) throw err;
+        showTable(rows);
+        start();
+      });
 };
 
 async function showTable(rows) {
