@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/slmov215/employee-traker-sql#readme",
   "dependencies": {
-    "chalk": "^5.2.0",
+    "chalk": "^4.1.1",
     "express": "^4.18.2",
     "figlet": "^1.6.0",
     "inquirer": "^8.2.4",
