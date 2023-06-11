@@ -3,6 +3,7 @@ const connection = require('./db/connection');
 const inquirer = require('inquirer');
 const prompts = require('./lib/prompts');
 const { table } = require('table');
+const figlet = require("figlet");
 const { response } = require('express');
 const config = {
   border: {
@@ -29,6 +30,10 @@ const config = {
 // handle errors or start application
 connection.connect(function (err) {
   if (err) throw err;
+  console.log(figlet.textSync("Employee\n     Tracker", {
+    font: "Standard",
+    lineHeight: 5,
+  }))
   init();
 });
 
@@ -71,6 +76,9 @@ function handleTask(response) {
     case "Update an Employee's Role":
       updateEmployeeRole(response);
       break;
+    case "---BONUS---":
+      bonus();
+      break;
     case "Update Employee Managers":
       updateEmployeeManagers(response);
       break;
@@ -93,7 +101,10 @@ function handleTask(response) {
       viewDepartmentsBudget(response);
       break;
     case "EXIT":
-      console.log("GOODBYE!");
+      console.log(figlet.textSync("Good\n    Bye", {
+        font: "Standard",
+        lineHeight: 5,
+      }));
       process.exit(0);
   }
 };
@@ -111,7 +122,12 @@ const viewDepartments = () => {
   });
 };
 const viewRoles = () => {
-  const sql = `SELECT * FROM role`;
+  const sql = `SELECT role.id, 
+                role.title, 
+                role.salary, 
+                department.name AS department
+                FROM role
+                LEFT JOIN department ON role.department_id = department.id`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
     showTable(res);
@@ -119,7 +135,17 @@ const viewRoles = () => {
   });
 };
 const viewEmployees = () => {
-  const sql = `SELECT * FROM employee`;
+  const sql = `SELECT employee.id, 
+                employee.first_name, 
+                employee.last_name,
+                role.title AS title,
+                role.salary AS salary,
+                department.name AS department,
+                CONCAT (manager.first_name, " ", manager.last_name) AS manager 
+                FROM employee
+                LEFT JOIN role ON employee.role_id = role.id
+                LEFT JOIN department ON role.department_id = department.id
+                LEFT JOIN employee manager ON employee.manager_id = manager.id`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
     showTable(res);
@@ -176,9 +202,9 @@ const updateEmployeeRole = (response) => {
 
 const updateEmployeeManagers = (response) => {
   const sql = `UPDATE employee SET manager_id = 
-                (${response.updateNewManager})
+                ${response.updateNewManager} 
                 WHERE id = 
-                (${response.updateEmployeeManager})`;
+                ${response.updateEmployeeManager};`
   connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `Employee's Manager updated!`);
@@ -189,7 +215,12 @@ const updateEmployeeManagers = (response) => {
 // functions for all ***SORTED VIEWING*** SQL queries
 
 const viewEmployeeByManager = (response) => {
-  const sql = `SELECT * FROM employee WHERE manager_id = ${response.employeeManager}`;
+  const sql = `SELECT id, 
+                first_name, 
+                last_name 
+                FROM employee 
+                WHERE manager_id = 
+                ${response.employeeManager}`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
     if (res.length === 0) {
@@ -201,10 +232,12 @@ const viewEmployeeByManager = (response) => {
   });
 }
 const viewEmployeesByDepartment = (response) => {
-  const sql = `SELECT * FROM employee
-  LEFT JOIN role ON employee.role_id = role.id
-  LEFT JOIN department ON role.department_id = department.id
-                    WHERE department.id = ${response.viewDepartment}`;
+  const sql = `SELECT * 
+                FROM employee
+                LEFT JOIN role ON employee.role_id = role.id
+                LEFT JOIN department ON role.department_id = department.id
+                WHERE department.id = 
+                ${response.viewDepartment}`;
   connection.query(sql, (err, res) => {
     if (err) throw err;
     showTable(res);
@@ -215,8 +248,9 @@ const viewEmployeesByDepartment = (response) => {
 
 const removeDepartment = (response) => {
   const sql = `DELETE FROM department
-                WHERE id = ${response.deleteDepartment}`;
-   connection.query(sql, (err, res) => {
+                WHERE id = 
+                ${response.deleteDepartment}`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `Department of ${response.deleteDepartment} TERMINATED!`);
     viewDepartments();
@@ -224,8 +258,9 @@ const removeDepartment = (response) => {
 }
 const removeRole = (response) => {
   const sql = `DELETE FROM role
-                WHERE id = ${response.deleteRole}`;
-   connection.query(sql, (err, res) => {
+                WHERE id = 
+                ${response.deleteRole}`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `The Role of ${response.deleteRole} has been TERMINATED!`);
     viewRoles();
@@ -233,8 +268,9 @@ const removeRole = (response) => {
 }
 const removeEmployee = (response) => {
   const sql = `DELETE FROM employee
-                WHERE id = ${response.deleteEmployee}`;
-   connection.query(sql, (err, res) => {
+                WHERE id = 
+                ${response.deleteEmployee}`;
+  connection.query(sql, (err, res) => {
     if (err) throw err;
     console.log('\u001b[36;1m', `Employee has been terminated!`);
     viewEmployees();
@@ -242,16 +278,21 @@ const removeEmployee = (response) => {
 }
 
 const viewDepartmentsBudget = (response) => {
-  const sql = `SELECT department_id AS id, department.name AS department,
-  SUM (salary) AS budget
-  FROM role
-  INNER JOIN department ON role.department_id = department.id
-  GROUP BY role.department_id`;
-      connection.query(sql, (err, rows) => {
-        if (err) throw err;
-        showTable(rows);
-        start();
-      });
+  const sql = `SELECT department_id AS id,
+                department.name AS department,
+                SUM (salary) AS budget
+                FROM role
+                INNER JOIN department ON role.department_id = department.id
+                GROUP BY role.department_id`;
+  connection.query(sql, (err, rows) => {
+    if (err) throw err;
+    showTable(rows);
+    mainIndex();
+  });
+};
+const bonus = () => {
+  console.log('\u001b[36;1m', `Below are the bonus functionalities`);
+  mainIndex();
 };
 
 async function showTable(rows) {
