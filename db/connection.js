@@ -15,9 +15,4 @@ const connection = mysql.createConnection(
   console.log(`Connected to the employee_db database.`)
   );
 
-  // Query database
-// db.query('SELECT * FROM employees', function (err, results) {
-//   console.log(results);
-// });
-
 module.exports = connection;

@@ -34,15 +34,15 @@ const config = {
 const added = chalk.underline.green;
 const removed = chalk.strikethrough.red;
 const updated = chalk.hex('#FFA500'); // Orange color
-
+const greeting = chalk.bold.cyan;
 
 // handle errors or start application
 connection.connect(function (err) {
   if (err) throw err;
-  console.log(figlet.textSync("Employee\n     Tracker", {
+  console.log(greeting(figlet.textSync("Employee\n     Tracker", {
     font: "Standard",
     lineHeight: 5,
-  }))
+  })))
   init();
 });
 
@@ -110,10 +110,10 @@ function mainMenu(res) {
       viewDepartmentsBudget(res);
       break;
     case "EXIT":
-      console.log(figlet.textSync("Good\n    Bye", {
+      console.log(updated(figlet.textSync("Good\n    Bye", {
         font: "Standard",
         lineHeight: 5,
-      }));
+      })));
       process.exit(0);
   }
 };
@@ -180,7 +180,7 @@ const addRole = (res) => {
                 '${res.roleDepartment}')`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `${res.roleTitle} 's role added!`);
+    console.log(added(`${res.roleTitle} 's role added!`));
     mainIndex();
   });
 };
@@ -192,7 +192,7 @@ const addEmployee = (res) => {
                 '${res.employeeManager}')`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `${res.employeeFirstName} ${res.employeeLastName} has been added to the DataBase!`);
+    console.log(added(`${res.employeeFirstName} ${res.employeeLastName} has been added to the DataBase!`));
     mainIndex();
   });
 };
@@ -206,7 +206,7 @@ const updateEmployeeRole = (res) => {
                 ${res.updateEmployee}`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `Employee role updated!`);
+    console.log(updated(`Employee's role updated!`));
     mainIndex();
   });
 };
@@ -217,7 +217,7 @@ const updateEmployeeManagers = (res) => {
                 ${res.updateEmployeeManager};`
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `Employee's Manager updated!`);
+    console.log(updated(`Employee's Manager updated!`));
     mainIndex();
   })
 };
@@ -232,9 +232,9 @@ const viewEmployeeByManager = (res) => {
                 WHERE manager_id = 
                 ${res.employeeManager}`;
   connection.query(sql, (err, rows) => {
-    if (err) throw err;
-    if (res.length === 0) {
-      console.log('\u001b[36;1m', "This employee doesn't manage anyone");
+    // if (err) throw err;
+    if (rows.length === 0) {
+      console.log(updated("This employee doesn't manage anyone"));
       return mainIndex();
     }
     showTable(rows);
@@ -263,7 +263,7 @@ const removeDepartment = (res) => {
                 ${res.deleteDepartment}`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log(removed(`Department of ${res.deleteDepartment} TERMINATED!`));
+    console.log(removed(`\nDepartment has been TERMINATED!\n`));
     viewDepartments();
   });
 }
@@ -273,7 +273,7 @@ const removeRole = (res) => {
                 ${res.deleteRole}`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `The Role of ${res.deleteRole} has been TERMINATED!`);
+    console.log(removed(`\nThe Role has been TERMINATED!\n`));
     viewRoles();
   });
 }
@@ -283,7 +283,7 @@ const removeEmployee = (res) => {
                 ${res.deleteEmployee}`;
   connection.query(sql, (err, rows) => {
     if (err) throw err;
-    console.log('\u001b[36;1m', `Employee has been terminated!`);
+    console.log(removed(`\nEmployee has been terminated!\n`));
     viewEmployees();
   });
 }
